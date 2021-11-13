@@ -17,10 +17,11 @@ import torch.nn.functional as F
 # model = ESIMModel(config.ws, config.embedding_dim, config.hidden_size, config.num_of_class, config.dropout)
 def train_esim(epoch):
     model = ESIMModel(config.ws, config.embedding_dim, config.hidden_size, config.num_of_class, config.dropout)
-    model.train(mode=True)
     optimizer = optim.Adam(model.parameters(), lr=0.2)
+    # 载入模型
     optimizer.load_state_dict(torch.load(config.esim_optimizer_state_dict_path))
     model.load_state_dict(torch.load(config.esim_model_state_dict_path))
+    model.train(mode=True)
     for idx, (labels, sentence1s, sentence2s) in enumerate(train_dataloader):
         optimizer.zero_grad()
         output = model(sentence1s, sentence2s)
@@ -29,6 +30,9 @@ def train_esim(epoch):
         loss = F.nll_loss(output, labels)
         loss.backward()
         optimizer.step()
+
+        pred = torch.max(output, dim=-1, keepdim=False)[-1]
+        correct = pred.eq(labels.data).sum()
         if idx % 1 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, idx * len(sentence1s), len(train_dataloader.dataset),

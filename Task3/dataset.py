@@ -84,18 +84,20 @@ class SnliDataset(Dataset):
 def collate_fn(batch):
     batch = list(zip(*batch))
     try:
+
         labels = torch.tensor(batch[0], dtype=torch.long)
     except ValueError:
         print("出现了nan")
         for i in range(len(batch[0])):
             if math.isnan(batch[0][i]):
-                # batch[0][i] = 0
+                # batch[0][i] = 0s
                 tmp = list(batch[0])
                 tmp[i] = 0
                 batch[0] = tuple(tmp)
 
-
-    labels = torch.tensor(batch[0], dtype=torch.long)
+    l = list(batch[0])
+    labels = torch.tensor(l, dtype=torch.long)
+    # print(labels)
     sentence1s = batch[1]
     sentence2s = batch[2]
     sentence1s = torch.tensor([config.ws.transform(i, config.seq_len) for i in sentence1s])
@@ -107,11 +109,11 @@ def collate_fn(batch):
 # 实例化
 train_dataset = SnliDataset(mode="train", debug=config.debug)
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=config.batch_size
-                              , shuffle=True, collate_fn=collate_fn)
+                              , shuffle=False, collate_fn=collate_fn)
 
 test_dataset = SnliDataset(mode="test", debug=config.debug)
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=config.batch_size
-                              , shuffle=True, collate_fn=collate_fn)
+                              , shuffle=False, collate_fn=collate_fn)
 
 # for idx, (labels, sentences1, sentences2) in enumerate(train_dataloader):
 #     print("idx:", idx)

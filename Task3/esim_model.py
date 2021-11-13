@@ -32,9 +32,15 @@ class InputEncoder(nn.Module):
         self.lstm = nn.LSTM(self.embedding_dim,self.hidden_size,
                             self.num_layer,bidirectional=self.bidirectional
                             ,dropout=self.dropout,batch_first=True)
-
     def forward(self, input):
+        tmp_input = input
+        tmp_embedding = self.embedding
+
         input = self.embedding(input)
+
+        if(torch.isnan(input).int().sum()>0):
+            non_zero = (torch.isnan(input).int()).nonzero()
+            print("embedding后出现nan")
         # x = x.permute(1,0,2)
         h_0,c_0 = self.init_hidden_state(input.size(0))# x的第一个维度大小为batch size
         out,(h_n,c_n) = self.lstm(input, (h_0, c_0))

@@ -17,7 +17,7 @@ import torch
 
 train_data_path = "./data/train.csv"
 test_data_path = "./data/test.csv"
-debug = True
+debug = False
 from Task3.word_sequence import fit_save_word_sequence
 ws = pickle.load(open("./models/ws.pkl", "rb"))
 

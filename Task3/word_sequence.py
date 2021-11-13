@@ -120,11 +120,19 @@ from Task3.utils import read_csv
 
 def fit_save_word_sequence():
     ws = Word2Sequence()
+    # train data
     data = read_csv("./data/train.csv", ["sentence1","sentence2"])
     raw_sentences1 = data["sentence1"].values.tolist()
     raw_sentences2 = data["sentence2"].values.tolist()
     sentences = []
     raw_sentences = raw_sentences1+raw_sentences2
+
+    # test data
+    data = read_csv("./data/test.csv", ["sentence1","sentence2"])
+    raw_sentences1 = data["sentence1"].values.tolist()
+    raw_sentences2 = data["sentence2"].values.tolist()
+    raw_sentences = raw_sentences+raw_sentences2+raw_sentences1
+
     for sentence in tqdm(raw_sentences):
         if isinstance(sentence,str):
             x = sentence.strip().split(" ")
