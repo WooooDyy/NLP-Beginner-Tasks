@@ -7,7 +7,7 @@
 @Author   : Zhiheng Xi
 """
 from torch import optim
-from dataset import train_dataloader,test_dataloader
+from Task3.dataset import train_dataloader,test_dataloader
 from esim_model import ESIMModel
 import Task3.config as config
 import torch
@@ -17,12 +17,14 @@ import torch.nn.functional as F
 # model = ESIMModel(config.ws, config.embedding_dim, config.hidden_size, config.num_of_class, config.dropout)
 def train_esim(epoch):
     model = ESIMModel(config.ws, config.embedding_dim, config.hidden_size, config.num_of_class, config.dropout)
-    optimizer = optim.Adam(model.parameters(), lr=0.2)
+    optimizer = optim.Adam(model.parameters(), lr=config.learning_reate)
     # 载入模型
     optimizer.load_state_dict(torch.load(config.esim_optimizer_state_dict_path))
     model.load_state_dict(torch.load(config.esim_model_state_dict_path))
     model.train(mode=True)
     for idx, (labels, sentence1s, sentence2s) in enumerate(train_dataloader):
+        # if idx < 554:
+        #     continue
         optimizer.zero_grad()
         output = model(sentence1s, sentence2s)
         # b = torch.argmax(output,dim=1)
@@ -33,10 +35,16 @@ def train_esim(epoch):
 
         pred = torch.max(output, dim=-1, keepdim=False)[-1]
         correct = pred.eq(labels.data).sum()
+        acc = 100. * pred.eq(labels.data).cpu().numpy().mean()
+
+
         if idx % 1 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, idx * len(sentence1s), len(train_dataloader.dataset),
                    100. * idx / len(train_dataloader), loss.item()))
+
+        print('idx: {} Test set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'
+              .format(idx, loss, correct, labels.size(0), acc))
 
         if idx % 5 == 0:
             torch.save(model.state_dict(), config.esim_model_state_dict_path)

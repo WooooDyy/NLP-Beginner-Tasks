@@ -24,11 +24,11 @@ from Task3.utils import read_csv
 
 def label_trans(label):
     if label == "entailment":
-        return 0
-    if label == "contradiction":
-        return 1
-    if label == "neutral":
         return 2
+    if label == "contradiction":
+        return 0
+    if label == "neutral":
+        return 1
 
 
 def transform_txt_to_csv(src_filepath, tgt_filepath):
@@ -75,7 +75,7 @@ class SnliDataset(Dataset):
             self.sentence2 = self.sentence2[:min(config.debug_dataset_size,len(self.label))]
 
     def __getitem__(self, idx):
-        return self.label[idx], self.sentence1[idx].strip().split(" "), self.sentence2[idx].strip().split(" ")
+        return self.label[idx], str(self.sentence1[idx]).strip().split(" "), str(self.sentence2[idx]).strip().split(" ")
 
     def __len__(self):
         return len(self.label)
@@ -109,11 +109,11 @@ def collate_fn(batch):
 # 实例化
 train_dataset = SnliDataset(mode="train", debug=config.debug)
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=config.batch_size
-                              , shuffle=False, collate_fn=collate_fn)
+                              , shuffle=True, collate_fn=collate_fn)
 
 test_dataset = SnliDataset(mode="test", debug=config.debug)
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=config.batch_size
-                              , shuffle=False, collate_fn=collate_fn)
+                              , shuffle=True, collate_fn=collate_fn)
 
 # for idx, (labels, sentences1, sentences2) in enumerate(train_dataloader):
 #     print("idx:", idx)

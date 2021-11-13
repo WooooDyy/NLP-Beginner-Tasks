@@ -30,7 +30,7 @@ bidirectional = True
 dropout = 0.5
 weights = None
 num_of_class = 3
-seq_len = 500
+seq_len = 50
 debug_dataset_size = 10000
 
 esim_model_state_dict_path = "./models/esim_model_state_dict.model"
