@@ -57,22 +57,29 @@ def eval_esim():
     test
     :return:
     """
-    # model = ESIMModel(config.ws, config.embedding_dim, config.hidden_size, config.num_of_class, config.dropout)
-    # model.load_state_dict(torch.load(config.esim_model_state_dict_path))
-    model = torch.load(config.esim_model_path)
+    model = ESIMModel(config.ws, config.embedding_dim, config.hidden_size, config.num_of_class, config.dropout)
+    model.load_state_dict(torch.load(config.esim_model_state_dict_path))
+    model.train(mode=False)
+    # model = torch.load(config.esim_model_path)
     # dataloader = test_dataloader
-    dataloader = train_dataloader
+    dataloader = test_dataloader
     with torch.no_grad():
         print(dataloader)
+        correct_all= 0
+        label_all = 0
         for idx, (labels, sentence1s, sentence2s) in enumerate(dataloader):
             output = model(sentence1s, sentence2s)
             test_loss = F.nll_loss(output, labels, reduction="mean")
             pred = torch.max(output, dim=-1, keepdim=False)[-1]
             correct = pred.eq(labels.data).sum()
+
             acc = 100. * pred.eq(labels.data).cpu().numpy().mean()
+
             print('idx: {} Test set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'
                   .format(idx, test_loss,correct,labels.size(0), acc))
-
+            correct_all+=correct
+            label_all+=len(labels)
+        print("All Accuracy: {}/{} ({:.2f}%)".format(correct_all,label_all,100.*correct_all/label_all))
 # train_esim()
 def train(epoch):
     for i in range(epoch):

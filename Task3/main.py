@@ -14,8 +14,8 @@ import torch
 import torch.nn.functional as F
 from Task3.train_and_test import train_esim,eval_esim,train
 if __name__ == '__main__':
-    train(epoch=3)
-    # eval_esim()
+    # train(epoch=3)
+    eval_esim()
 
 
 

@@ -112,7 +112,7 @@ train_dataloader = DataLoader(dataset=train_dataset, batch_size=config.batch_siz
                               , shuffle=True, collate_fn=collate_fn)
 
 test_dataset = SnliDataset(mode="test", debug=config.debug)
-test_dataloader = DataLoader(dataset=test_dataset, batch_size=config.batch_size
+test_dataloader = DataLoader(dataset=test_dataset, batch_size=128
                               , shuffle=True, collate_fn=collate_fn)
 
 # for idx, (labels, sentences1, sentences2) in enumerate(train_dataloader):
