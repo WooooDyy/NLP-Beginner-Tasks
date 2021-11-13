@@ -22,7 +22,7 @@ from Task3.word_sequence import fit_save_word_sequence
 ws = pickle.load(open("./models/ws.pkl", "rb"))
 
 
-batch_size = 32
+batch_size = 1
 num_layer = 2
 hidden_size = 128
 embedding_dim = 300
