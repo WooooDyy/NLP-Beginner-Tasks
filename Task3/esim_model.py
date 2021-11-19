@@ -29,6 +29,7 @@ class InputEncoder(nn.Module):
 
         # [vocab size,300]
         self.embedding = nn.Embedding(len(self.ws), self.embedding_dim, padding_idx=self.ws.PAD)
+        # self.embedding.weight.data.copy_(self.embedding)
         self.lstm = nn.LSTM(self.embedding_dim,self.hidden_size,
                             self.num_layer,bidirectional=self.bidirectional
                             ,dropout=self.dropout,batch_first=True)

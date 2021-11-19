@@ -100,8 +100,8 @@ def collate_fn(batch):
     # print(labels)
     sentence1s = batch[1]
     sentence2s = batch[2]
-    print(sentence1s)
-    print(sentence2s)
+    # print(sentence1s)
+    # print(sentence2s)
     sentence1s = torch.tensor([config.ws.transform(i, config.seq_len) for i in sentence1s])
     sentence2s = torch.tensor([config.ws.transform(i, config.seq_len) for i in sentence2s])
 

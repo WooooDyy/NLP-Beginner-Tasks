@@ -19,8 +19,8 @@ def train_esim(epoch):
     model = ESIMModel(config.ws, config.embedding_dim, config.hidden_size, config.num_of_class, config.dropout)
     optimizer = optim.Adam(model.parameters(), lr=config.learning_reate)
     # 载入模型
-    optimizer.load_state_dict(torch.load(config.esim_optimizer_state_dict_path))
-    model.load_state_dict(torch.load(config.esim_model_state_dict_path))
+    # optimizer.load_state_dict(torch.load(config.esim_optimizer_state_dict_path))
+    # model.load_state_dict(torch.load(config.esim_model_state_dict_path))
     model.train(mode=True)
     for idx, (labels, sentence1s, sentence2s) in enumerate(train_dataloader):
         # if idx < 554:
