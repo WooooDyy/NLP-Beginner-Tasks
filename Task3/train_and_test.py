@@ -81,6 +81,7 @@ def eval_esim():
             label_all+=len(labels)
         print("All Accuracy: {}/{} ({:.2f}%)".format(correct_all,label_all,100.*correct_all/label_all))
 # train_esim()
-def train(epoch):
+def train_and_test(epoch):
     for i in range(epoch):
         train_esim(i)
+        eval_esim()

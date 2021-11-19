@@ -3,14 +3,10 @@
 """
 @File     : word_sequence.py
 @Project  : NLP-Beginner
-@Time     : 2021/11/10 4:19 下午
+@Time     : 2021/11/18 3:11 下午
 @Author   : Zhiheng Xi
-@Contact_1: 1018940210@qq.com
-@Software : PyCharm
-@Last Modify Time      @Version     @Desciption
---------------------       --------        -----------
-2021/11/10 4:19 下午        1.0             None
 """
+
 
 import pickle
 import numpy as np
@@ -22,11 +18,17 @@ class Word2Sequence():
     PAD_TAG = "PAD"
     UNK = 0
     PAD = 1
+    BEGIN_TAG = "<S>"
+    END_TAG = "<E>"
+    BEGIN = 2
+    END = 3
 
     def __init__(self):
         self.dict = {
             self.UNK_TAG: self.UNK,
-            self.PAD_TAG: self.PAD
+            self.PAD_TAG: self.PAD,
+            self.BEGIN_TAG:self.BEGIN,
+            self.END_TAG:self.END
         }
         self.fitted = False
 
@@ -92,18 +94,14 @@ class Word2Sequence():
 
         self.inversed_dict = dict(zip(self.dict.values(), self.dict.keys()))
 
-    def transform(self, sentence, max_len=None):
+    # 不会批处理，所以max_len不要设置了
+    def transform(self, sentence):
         """
         把句子转化为向量
         :return:
         """
         assert self.fitted
-        if max_len is not None:
-            r = [self.PAD] * max_len
-        else:
-            r = [self.PAD] * len(sentence)
-        if max_len is not None and len(sentence) > max_len:
-            sentence = sentence[:max_len]
+        r = [self.PAD] * len(sentence)
         for index, word in enumerate(sentence):
             r[index] = self.to_index(word)
         return np.array(r, dtype=np.int64)
@@ -121,17 +119,15 @@ from Task3.utils import read_csv
 def fit_save_word_sequence():
     ws = Word2Sequence()
     # train data
-    data = read_csv("./data/train.csv", ["sentence1","sentence2"])
-    raw_sentences1 = data["sentence1"].values.tolist()
-    raw_sentences2 = data["sentence2"].values.tolist()
+    data = read_csv("./data/train.csv", ["sentence"])
+    raw_sentences = data["sentence"].values.tolist()
     sentences = []
-    raw_sentences = raw_sentences1+raw_sentences2
+    raw_sentences = raw_sentences
 
     # test data
-    data = read_csv("./data/test.csv", ["sentence1","sentence2"])
-    raw_sentences1 = data["sentence1"].values.tolist()
-    raw_sentences2 = data["sentence2"].values.tolist()
-    raw_sentences = raw_sentences+raw_sentences2+raw_sentences1
+    data = read_csv("./data/test.csv", ["sentence"])
+    raw_sentences_test = data["sentence"].values.tolist()
+    raw_sentences = raw_sentences+raw_sentences_test
 
     for sentence in tqdm(raw_sentences):
         if isinstance(sentence,str):

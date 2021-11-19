@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/Task1" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Task2" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Task3" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Task4_LSTM_CRF" isTestSource="false" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.6 (DeepLearning)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

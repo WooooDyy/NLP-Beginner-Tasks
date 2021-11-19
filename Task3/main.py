@@ -12,9 +12,9 @@ from esim_model import ESIMModel
 import Task3.config  as config
 import torch
 import torch.nn.functional as F
-from Task3.train_and_test import train_esim,eval_esim,train
+from Task3.train_and_test import train_esim,eval_esim,train_and_test
 if __name__ == '__main__':
-    # train(epoch=3)
+    train_and_test(3)
     eval_esim()
 
 
