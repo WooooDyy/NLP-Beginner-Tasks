@@ -16,6 +16,7 @@ import pickle
 import Task4_LSTM_CRF.utils as utils
 
 ws = pickle.load(open("./models/ws.pkl", "rb"))
+torch.manual_seed(1)
 
 
 def log_sum_exp(state_matrix):
@@ -51,9 +52,10 @@ class BiLSTM_CRF(nn.Module):
         self.dropout = dropout
         self.bi_num = 2 if self.bidirectional else 1
 
-        self.embedding = nn.Embedding(len(self.ws), self.embedding_dim)
+        self.embedding = nn.Embedding(len(self.ws), self.embedding_dim,padding_idx=self.ws.PAD)
         self.lstm = nn.LSTM(self.embedding_dim, self.hidden_size, self.num_layer,
-                            bidirectional=self.bidirectional,  batch_first=True)
+                            bidirectional=self.bidirectional,  batch_first=True,
+                            )
         # 将输出降维到tag维度的空间
         self.hidden2tag = nn.Linear(hidden_size * 2, config.num_of_tag)
         # num_of_tag * num_of_tag的转移矩阵
@@ -61,8 +63,8 @@ class BiLSTM_CRF(nn.Module):
         self.transitions = nn.Parameter(torch.randn(config.num_of_tag, config.num_of_tag))
 
         # "BEGIN_TAG来自于?" 和 "?来自于END_TAG" 都是无意义的
-        self.transitions.data[:, utils.tag_to_idx("<BEGIN>")] = self.transitions.data[utils.idx_to_tag("<END>"),
-                                                                :] = -10000
+        self.transitions.data[:, utils.tag_to_idx("<BEGIN>")] = \
+            self.transitions.data[utils.idx_to_tag("<END>"),:] = -10000
 
     def neg_log_liklihood(self, words, tags):
         """
@@ -126,7 +128,7 @@ class BiLSTM_CRF(nn.Module):
         :param tags: 正确的tag
         :return:
         """
-        tags_tensor = self.tags_to_tensor([utils.tag_to_idx("<BEGIN>")]+tags) # 注意不要加<END>，结尾会处理
+        tags_tensor = self.tags_to_tensor([utils.tag_to_idx("<BEGIN>")]+list(tags)) # 注意不要加<END>，结尾会处理
         score = torch.zeros(1)
         for idx,frame in enumerate(frames): # 沿途累加每一帧的转移和发射,frame长度比tags_tensor短1，所以idx+1
             try:

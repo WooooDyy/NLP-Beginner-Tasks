@@ -19,35 +19,49 @@ def read_csv(file_path, col_list=None):
         return df[col_list]
 
 def tag_to_idx(tag):
-    if tag=="I-LOC":
-        return 0
-    if tag== "I-MISC":
-        return 1
     if tag=="I-ORG":
+        return 0
+    if tag== "O":
+        return 1
+    if tag=="I-MISC":
         return 2
     if tag=="I-PER":
         return 3
-    if tag=="O":
+    if tag=="I-LOC":
         return 4
-    if tag=="<BEGIN>":
+    if tag=="B-LOC":
         return 5
-    if tag=="<END>":
+    if tag=="B-MISC":
         return 6
+    if tag=="B-ORG":
+        return 7
+    if tag=="<BEGIN>":
+        return 8
+    if tag=="<END>":
+        return 9
+    # if tag=="B-ORG":
+    #     return 10
 
 def idx_to_tag(idx):
     if idx == 0:
-        return "I-LOC"
-    if idx==1:
-        return "I-MISC"
-    if idx==2:
         return "I-ORG"
+    if idx==1:
+        return "O"
+    if idx==2:
+        return "I-MISC"
     if idx==3:
         return "I-PER"
     if idx==4:
-        return "O"
+        return "I-LOC"
     if idx==5:
-        return "<BEGIN>"
+        return "B-LOC"
     if idx==6:
+        return "B-MISC"
+    if idx==7:
+        return "B-ORG"
+    if idx==8:
+        return "<BEGIN>"
+    if idx==9:
         return "<END>"
 
 
@@ -97,5 +111,5 @@ def process_raw_data(raw_path="./data/eng.train", target_path="./data/train.csv"
 
 
 #
-process_raw_data("./data/eng.train","./data/train.csv")
-process_raw_data("./data/eng.testa","./data/test.csv")
+# process_raw_data("./data/eng.train","./data/train.csv")
+# process_raw_data("./data/eng.testa","./data/test.csv")

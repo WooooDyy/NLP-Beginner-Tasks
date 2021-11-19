@@ -45,17 +45,28 @@ class CoNLLDataset(Dataset):
     def __len__(self):
         return len(self.tag)
 
+import numpy as np
+def transform_tag_to_long_tensor(tags_of_one_sentence,max_len=None):
+    if max_len is not None:
+        r= [utils.tag_to_idx("<PAD>")] * max_len
+    else:
+        r = [utils.tag_to_idx("<PAD>")] * len(tags_of_one_sentence)
+    if max_len is not None and len(tags_of_one_sentence) > max_len:
+        tags_of_one_sentence = tags_of_one_sentence[:max_len]
+    for index, tag in enumerate(tags_of_one_sentence):
+        r[index] =  int(tag) if tag!='None' and tag is not None else 4
+    return np.array(r,dtype=np.int64)
 
 def collate_fn(batch):
     batch = list(zip(*batch))
-    tags = list(batch[0])[0]
+    tags = list(batch[0])
     # TODO
     try:
-        tags = [int(i) if i!='None' and i is not None else 4 for i in tags]
+        tags = [transform_tag_to_long_tensor(i,config.seq_len) for i in tags][0] #todo是不是要取[0]
     except ValueError:
         return
     sentences = list(batch[1])
-    sentences = [ws.transform(i) for i in sentences] # 要不要加[0],不要，因为还是要保留batch这个维度
+    sentences = [ws.transform(i,config.seq_len) for i in sentences] # 要不要加[0],不要，因为还是要保留batch这个维度
     sentences = torch.tensor(sentences)
     del batch
     return tags,sentences

@@ -19,34 +19,75 @@ from lstm_crf_model import BiLSTM_CRF
 
 ws = pickle.load(open("./models/ws.pkl", "rb"))
 
+model = BiLSTM_CRF()
+optimizer = optim.SGD(model.parameters(), lr=config.learning_reate, weight_decay=1e-4)
+
+def train_batch(batch_data,batch_size):
+    model.train(mode=True)
+    model.zero_grad()
+    for tags,words in batch_data:
+        loss = model.neg_log_liklihood(words,tags)/batch_size
+        loss.backward()
+
+    print('    loss = %.6lf' % loss)
+    optimizer.step()
+
 
 def train():
-    model = BiLSTM_CRF()
-    optimizer = optim.SGD(model.parameters(), lr=config.learning_reate)
-
-    # 载入模型
+    #载入模型
     # optimizer.load_state_dict(torch.load(config.lstm_crf_optimizer_state_dict_path))
     # model.load_state_dict(torch.load(config.lstm_crf_model_state_dict_path))
-
     model.train(mode=True)
+    batch_data = []
     for idx,(tags,words) in enumerate(train_dataloader):
-        print(idx)
+        # print(idx)
         # print(words)
-        model.zero_grad()
-        loss = model.neg_log_liklihood(words,tags)# 前向求出负对数似然(loss); 然后回传梯度
-        loss.backward()
-        optimizer.step()
-        if idx % 50 == 0:
+        # model.zero_grad()
+        # loss = model.neg_log_liklihood(words,tags)# 前向求出负对数似然(loss); 然后回传梯度
+        # loss.backward()
+        # optimizer.step()
+        batch_data.append([tags,words])
+        if idx % 100 == 0:
+            train_batch(batch_data,batch_size=len(batch_data))
+            batch_data=[]
             torch.save(model.state_dict(), config.lstm_crf_model_state_dict_path)
             torch.save(optimizer.state_dict(), config.lstm_crf_optimizer_state_dict_path)
             torch.save(model, config.lstm_crf_model_path)
             print("saved")
-    # todo 跑出来全是4 4 4
-    with torch.no_grad():
-        for idx,(tags,words) in enumerate(train_dataloader):
-            print("predict")
-            print(model(words))
-            print("true")
-            print(tags)
 
-train()
+
+def match(batch_data):
+    acc = 0
+    all_len = 0
+    with torch.no_grad():
+        for tags, words in batch_data:
+            all_len+=len(words[0])
+            ans = model(words)
+            ans = ans[1]
+            for i in range(len(words[0])):
+                try:
+                    if ans[i]==tags[i]:
+                        acc+=1
+                except IndexError:
+                    continue
+    print('acc = %.6lf%%' % (acc / all_len * 100))
+
+def test():
+    model = BiLSTM_CRF()
+    optimizer = optim.SGD(model.parameters(), lr=config.learning_reate, weight_decay=1e-4)
+    optimizer.load_state_dict(torch.load(config.lstm_crf_optimizer_state_dict_path))
+    model.load_state_dict(torch.load(config.lstm_crf_model_state_dict_path))
+    with torch.no_grad():
+        batch_data = []
+        for idx,(tags,words) in enumerate(train_dataloader):
+            batch_data.append([tags, words])
+            if idx%100==0:
+                match(batch_data)
+                batch_data = []
+
+for i in range(10):
+    # print("epoch="+str(i))
+    train()
+    # todo 跑出来全是4 4 4
+    test()
+

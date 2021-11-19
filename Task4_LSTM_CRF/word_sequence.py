@@ -95,13 +95,18 @@ class Word2Sequence():
         self.inversed_dict = dict(zip(self.dict.values(), self.dict.keys()))
 
     # 不会批处理，所以max_len不要设置了
-    def transform(self, sentence):
+    def transform(self, sentence, max_len=None):
         """
         把句子转化为向量
         :return:
         """
         assert self.fitted
-        r = [self.PAD] * len(sentence)
+        if max_len is not None:
+            r = [self.PAD] * max_len
+        else:
+            r = [self.PAD] * len(sentence)
+        if max_len is not None and len(sentence) > max_len:
+            sentence = sentence[:max_len]
         for index, word in enumerate(sentence):
             r[index] = self.to_index(word)
         return np.array(r, dtype=np.int64)
