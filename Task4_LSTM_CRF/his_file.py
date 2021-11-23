@@ -282,7 +282,7 @@ def train(batch_data, batch_size):
     optimizer.step()
 
 
-match(test_data)
+# match(test_data)
 random.seed(6)
 for epoch in range(10):
     print('now in epoch %d...' % epoch)

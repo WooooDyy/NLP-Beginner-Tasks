@@ -63,8 +63,10 @@ class BiLSTM_CRF(nn.Module):
         self.transitions = nn.Parameter(torch.randn(config.num_of_tag, config.num_of_tag))
 
         # "BEGIN_TAG来自于?" 和 "?来自于END_TAG" 都是无意义的
-        self.transitions.data[:, utils.tag_to_idx("<BEGIN>")] = \
-            self.transitions.data[utils.idx_to_tag("<END>"),:] = -10000
+        self.transitions.data[:, utils.tag_to_idx("<BEGIN>")] = -10000
+        print(utils.tag_to_idx("<END>"))
+        self.transitions.data[utils.tag_to_idx("<END>"),:] = -10000
+        print(self.transitions)
 
     def neg_log_liklihood(self, words, tags):
         """
@@ -150,7 +152,7 @@ class BiLSTM_CRF(nn.Module):
         # TODO 下面这行不确定
         alpha[0][utils.tag_to_idx("<BEGIN>")] = 0.# 初始化分值分布. <BEGIN>是log(1)=0, 其他都是很小的值 "-10000",也就是只能到<BEGIN>
         for frame in frames:
-            log_sum_exp(alpha.T + frame.unsqueeze(0)+self.transitions)
+            alpha = log_sum_exp(alpha.T + frame.unsqueeze(0)+self.transitions)
         # 最后转到EOS，发射分值为0，转移分值为列向量 self.transitions[:, [self.tag2ix[END_TAG]]]
         return log_sum_exp(alpha.T + 0 + self.transitions[:, [utils.tag_to_idx("<END>")]]).flatten()
 
