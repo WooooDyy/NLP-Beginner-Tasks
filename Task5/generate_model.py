@@ -36,13 +36,9 @@ class GenerateModel(nn.Module):
         self.linear = nn.Linear(self.hidden_size,self.vocab_size)
 
 
-        # gru
-        # self.gru = nn.GRU(self.embedding_dim,self.hidden_size,dropout=self.dropout,batch_first=True)
-        # self.out = nn.Linear(self.hidden_size, self.output_size)
-
     def forward(self,input,seq_lengths,hidden=None):
         # lstm
-        batch_size,sequence_length = input.size()
+        batch_size,sequence_length = input.size() # sequence_length用来确保生成和计算loss的时候，不同的长度，在pad_packed_sequence里面同样用
         if hidden is None:
             h_0 = input.data.new(self.num_layers, batch_size, self.hidden_size).fill_(0).float()
             c_0 = input.data.new(self.num_layers, batch_size, self.hidden_size).fill_(0).float()
@@ -55,7 +51,7 @@ class GenerateModel(nn.Module):
         packed_embed = pack_padded_sequence(embeds,batch_first=True,enforce_sorted=False,lengths=seq_lengths)
 
         packed_output,hidden = self.lstm(packed_embed,(h_0,c_0))
-        output,lengths = pad_packed_sequence(packed_output,batch_first=True)
+        output,lengths = pad_packed_sequence(packed_output,batch_first=True,total_length=sequence_length)
 
         # #output shape(batch_size,sequence_length,hidden_dim(2 if bidirectional else 1))
         # output,hidden = self.lstm(embeds,(h_0,c_0))
@@ -64,53 +60,7 @@ class GenerateModel(nn.Module):
         output = self.linear(output.reshape(sequence_length * batch_size, -1))
         return output,hidden
 
-
-
-        # gru
-        # # input [batch_size,seq_len]
-        # input = self.embedding(input) # [batch_size,seq_len,embedding_size]
-        #
-        # h_0,_ = self.init_hidden_state(input.size(0))  # x的第一个维度大小为batch size  h_0 [1,batch_size,hidden_size]
-        # out,h_n = self.gru(input,h_0) # out[batch_size,seq_len,hidden_size]?todo
-        # output = self.out(out)#[batch_size,seq_len,out_size] 注意，返回的是所有的output，而不仅仅是h_n
-        # return output,h_n
-
-
-
-    # def generate(self,x,sent_num=4,max_len=15):
-    #     """
-    #     gru 生成 todo
-    #     :param x: todo 形状是1*1吗
-    #     :param sent_num:
-    #     :param max_len:
-    #     :return:
-    #     """
-    #     init_hidden = torch.zeros(1,1,self.hidden_size) #[1,1,hidden_size]
-    #     output=[]
-    #     hn = init_hidden
-    #
-    #     x = self.embedding(x)
-    #     for i in range(sent_num):
-    #         seq_out,hn = self.gru(x,hn)
-    #         seq_out = seq_out[:,-1,:].unsqueeze(0) # 选取seq的最后一个输出,也就是最后一个timestep
-    #         output.append(x[:,i,:].unsqueeze(1)) # 选取下一句的开头
-    #
-    #         for j in range(max_len):
-    #             # 上一个time step的输出 找到概率最大的
-    #             _,topi = self.out(seq_out).data.topk(1)
-    #             topi = topi.item()
-    #             xi_from_output = torch.zeros([1,1],dtype=int)
-    #             # todo xi_from_output做embedding处理
-    #             xi_from_output[0][0] = int(topi)# 最大概率的位置设为1
-    #             xi_from_output = self.embedding(xi_from_output) # [1,1,embeding dim]
-    #             output.append(xi_from_output)
-    #             # 生成新的output和hn todo
-    #             seq_out,hn = self.gru(xi_from_output,hn)
-    #             if topi==self.ws.to_index("。"):
-    #                 break
-    #     return output
-
-    def generate(self,start_words,char2seq:Char2Sequence=char2Seqence,prefix_words=None,max_generate_length=64):
+    def generate(self,start_words,char2seq:Char2Sequence=char2Seqence,prefix_words=None,max_generate_length=24):
         """
         给定开头几个词生成一首诗歌
         :param start_words: 给定开头词
@@ -173,9 +123,7 @@ from torch.optim import Adam
 import Task5.config as config
 from Task5.dataset import train_dataloader
 
-def train_one_epoch(epoch):
-    model = GenerateModel(char2Seq=char2Seqence)
-    optimizer = Adam(model.parameters(),lr=config.learning_rate)
+def train_one_epoch(epoch,model,optimizer):
     criterion = nn.CrossEntropyLoss()
 
     # model_path = "./models/generate_model.model"
@@ -184,20 +132,11 @@ def train_one_epoch(epoch):
     model.train()
     for i,batch in enumerate(train_dataloader):
         seq_length = []
-        for j in range(0,config.batch_size):
-            """
-            epoch0,idx:483,loss:4.03963
-epoch0,idx:484,loss:3.89282
-Traceback (most recent call last):
-  File "/Users/woooodyy/Documents/DL/NLP-Beginner/Task5/generate_model.py", line 234, in <module>
-    train(3)
-  File "/Users/woooodyy/Documents/DL/NLP-Beginner/Task5/generate_model.py", line 231, in train
-    train_one_epoch(i)
-  File "/Users/woooodyy/Documents/DL/NLP-Beginner/Task5/generate_model.py", line 188, in train_one_epoch
-    a = list(batch[j].data).index(torch.tensor(3))
-IndexError: index 2 is out of bounds for dimension 0 with size 2
-"""
-            a = list(batch[j].data).index(torch.tensor(3))
+        for j in range(0,batch.shape[0]):
+            try:
+                a = list(batch[j].data).index(torch.tensor(3))
+            except IndexError:
+                print("index error")
             seq_length.append(a+1-1)# x要qu掉1
         seq_length = torch.tensor(seq_length)
 
@@ -230,18 +169,26 @@ def test():
     model.load_state_dict(torch.load(config.model_state_dict_path))
     model.eval()
 
-    x = "三层阁上"
+    x = "空山新雨后，"
     # x = [char2Seqence.to_index(i) for i in list(x)]
     # x = [x]
     # x = torch.tensor(x)
-    output= model.generate(x)
+    output= model.generate(x,prefix_words="秋冬",max_generate_length=24)
     print(output)
 
 
-def train(epoch):
+def train(epoch,load_model=True):
+    model = GenerateModel(char2Seq=char2Seqence)
+    optimizer = Adam(model.parameters(),lr=config.learning_rate)
+    # 载入模型
+    if load_model:
+        optimizer.load_state_dict(torch.load(config.optimizer_dict_path))
+        model.load_state_dict(torch.load(config.model_state_dict_path))
     for i in range(epoch):
-        train_one_epoch(i)
+        train_one_epoch(i,model,optimizer)
 
 
-# train(3)
+# train(1,load_model=False)
+
+# train(30,load_model=True)
 test()

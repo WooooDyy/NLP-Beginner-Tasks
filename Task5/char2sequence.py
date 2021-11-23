@@ -73,7 +73,7 @@ class Char2Sequence():
 
         # 比最小的数量大，比最大的数量小，这些才能需要
         if min_count is not None:
-            count = {char: value for char, value in count.items() if value > min_count}
+            count = {char: value for char, value in count.items() if value >= min_count}
         if max_count is not None:
             count = {char: value for char, value in count.items() if value < max_count}
 
@@ -138,7 +138,7 @@ def fit_save_word_sequence():
     for sentence in tqdm(raw_sentences):
         if isinstance(sentence, str):
             x = list(sentence)
-            x = ['<S>'] + x + ['<E>']
+            # x = ['<S>'] + x + ['<E>']
             sentences.append(x)
     ws.fit(sentences)
     pickle.dump(ws, open("./models/char2sequence.pkl", "wb"))

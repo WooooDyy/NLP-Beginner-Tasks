@@ -13,7 +13,16 @@ import pandas as pd
 def transform_txt_to_csv(raw_path, target_path):
     with open(raw_path, encoding='utf-8') as f:
         lines = f.read().split("\n")
-
+        lines = [(i[i.index(":")+1:]).strip() for i in lines]
+        resule_lines = []
+        # 因为经常句号就结束了，导致只有两句诗，所以在这里把某些句号去掉
+        # 另一种思路：训练的时候一轮有句号，下面一轮没有句号
+        for i in range(len(lines)):
+            if i%100!=0:
+                resule_lines.append(lines[i][:-1])
+            else:
+                resule_lines.append(lines[i])
+    lines = resule_lines
     lines = list(map(lambda x: x.replace("\n", ""), lines))
     df = pd.DataFrame()
     df['sentence'] = lines

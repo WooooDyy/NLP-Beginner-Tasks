@@ -42,7 +42,7 @@ char2seq = pickle.load(open("./models/char2sequence.pkl", "rb"))
 def collate_fn(batch):
     sentences = batch
 
-    sentences = [char2seq.transform(i,config.seq_len) for i in sentences]
+    sentences = [char2seq.transform(str(i),config.seq_len) for i in sentences]
     sentences = torch.tensor(sentences)
     del batch
     return sentences

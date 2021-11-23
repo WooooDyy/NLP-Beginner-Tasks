@@ -16,7 +16,7 @@ debug = False
 batch_size = 32
 seq_len = 100
 
-hidden_size = 128
+hidden_size = 256
 output_size = 32
 embedding_dim = 128
 dropout = 0.2
