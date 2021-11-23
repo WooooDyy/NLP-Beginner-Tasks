@@ -7,6 +7,9 @@
 @Author   : Zhiheng Xi
 """
 import pickle
+
+from tqdm import tqdm
+
 from Task4_LSTM_CRF.word_sequence import Word2Sequence
 from torch import optim
 import torch
@@ -21,7 +24,8 @@ ws = pickle.load(open("./models/ws.pkl", "rb"))
 
 model = BiLSTM_CRF()
 optimizer = optim.SGD(model.parameters(), lr=config.learning_reate, weight_decay=1e-4)
-
+# optimizer.load_state_dict(torch.load(config.lstm_crf_optimizer_state_dict_path))
+# model.load_state_dict(torch.load(config.lstm_crf_model_state_dict_path))
 def train_batch(batch_data,batch_size):
     model.train(mode=True)
     model.zero_grad()
@@ -71,22 +75,27 @@ def match(batch_data):
                 except IndexError:
                     continue
     print('acc = %.6lf%%' % (acc / all_len * 100))
+    return acc/all_len * 100
 
 def test():
-    model = BiLSTM_CRF()
-    optimizer = optim.SGD(model.parameters(), lr=config.learning_reate, weight_decay=1e-4)
-    optimizer.load_state_dict(torch.load(config.lstm_crf_optimizer_state_dict_path))
-    model.load_state_dict(torch.load(config.lstm_crf_model_state_dict_path))
+
+    acc_all_len = 0
+    batch_idx=0
     with torch.no_grad():
         batch_data = []
         for idx,(tags,words) in enumerate(train_dataloader):
             batch_data.append([tags, words])
             if idx%100==0:
-                match(batch_data)
+                acc_all_len += match(batch_data)
                 batch_data = []
+                batch_idx+=1
 
-for i in range(10):
-    # print("epoch="+str(i))
+    print("acc_all_len= %.6lf%%" %(acc_all_len/batch_idx))
+
+for i in tqdm(range(50)):
+    print("--------------------------------------------------------")
+    print("epoch="+str(i))
+
     train()
     # todo 跑出来全是4 4 4
     test()
